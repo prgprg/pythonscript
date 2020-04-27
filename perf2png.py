@@ -466,7 +466,7 @@ ap.add_argument("-s", "--savecsv", required=False,
 
 #linux
 ap.add_argument("-u", "--linuxlog", required=False,
-    help="[DD] (day of month) generates the png file from sar file for the specified date")
+    help="[DD] (day of month) generates the png file from sar file for the specified date/nAlso creates a log.txt file with names of plotted arguments")
 args = vars(ap.parse_args())
 
 
