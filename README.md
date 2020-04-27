@@ -3,7 +3,7 @@ System performance monitor script in Linux and Windows
 
 Start working with script:
 
-ON WINDOWS:
+WINDOWS:
 
 1- Install Python 3.7.xx (preferably the latest version) from the original website
 2- Add Python to PATH 
@@ -11,7 +11,7 @@ ON WINDOWS:
 4- Now you can run the script
 
 
-ON LINUX:
+LINUX:
 
 1- Install Python 3.7.xx (preferably the latest version) from the original website
 2- Run setup.sh to install the necessary python packages
