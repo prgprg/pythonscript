@@ -466,7 +466,7 @@ ap.add_argument("-l", "--log", required=False,
 
 ap.add_argument("-s", "--savecsv", required=False,
    help="[.csv output filename] keeps the .csv file")
-args = vars(ap.parse_args())
+
 
 #linux
 ap.add_argument("-u", "--linuxlog", required=False,
