@@ -397,7 +397,7 @@ def plott():
     try:  #plotting
         
         
-        #os.makedirs(r'/Performance/'+inputdate)
+        os.makedirs(r'./'+sardate+'/')
     
         plt.figure(dpi=200,frameon=True);
         for i in range(0,len(datalist)):
@@ -415,7 +415,7 @@ def plott():
             plt.grid(True);
              
             plt.plot(timeIntervals,datalist[i], 'bo',markersize=1.5)  ; 
-            plt.savefig(r'./('+labels[i].replace('/',' in ')+r'.png') ;
+            plt.savefig(r'./'+sardate+'/('+labels[i].replace('/',' in ')+r'.png') ;
             plt.clf();
             labels[i]=labels[i].replace(')', ':')
             
@@ -423,6 +423,21 @@ def plott():
                 plt.close(fig='all');
             
     except Exception as e: print(e)
+
+def getfiledate(date):
+    
+    R=subprocess.run(['sar', '-u', '-f','/var/log/sa/sa'+ date ], stdout=subprocess.PIPE)  #read from terminal line
+    inputstrr=[]
+    
+    
+    for i in R.stdout.splitlines():
+        inputstrr.append(list(filter(None,str(i).split(' '))))   
+            
+    sardate=inputstrr.pop(0)[3][2:].replace('/','-') 
+    d= datetime.strptime(sardate, '%m-%d-%Y')    
+    sardate=str(d.strftime('%Y-%m-%d'))
+    
+    return sardate
 
 
 
@@ -466,7 +481,7 @@ ap.add_argument("-s", "--savecsv", required=False,
 
 #linux
 ap.add_argument("-u", "--linuxlog", required=False,
-    help="[DD] (day of month) generates the png file from sar file for the specified date/nAlso creates a log.txt file with names of plotted arguments")
+    help="[DD] (day of month) generates the png file from sar file for the specified date.\nAlso creates a log.txt file with names of plotted arguments")
 args = vars(ap.parse_args())
 
 
@@ -491,7 +506,8 @@ try:
 except Exception as e: print(e)
 
 
-#%%-------------linux:
+#%%-
+#------------linux:+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 inputdate=''
 
@@ -501,10 +517,12 @@ try:
         
         if 'linuxlog' in args and args['linuxlog']!=None and len(args['linuxlog'])==2:
             inputdate=args['linuxlog'] #find the days and split the string
+            sardate=getfiledate(inputdate)
             datalist, timeIntervals, labels = getdataset(inputdate)
             plott()
+            
 
-            with open('./list.txt', "w") as output:
+            with open('./'+sardate+'/log.txt', "w") as output:
                 for i in labels:
                     output.write(str(i).replace('(','')+'\n')
             winflag = False        
