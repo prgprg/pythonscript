@@ -62,7 +62,7 @@ def getdataset(date):
         tempdata.pop(2)       
         checkpoint=len(tempdata)
         
-    except Exception as e: print(e)
+    except Exception as e: print(e, '1')
 
     try:
     #============================================   2   ===================================================    
@@ -98,7 +98,7 @@ def getdataset(date):
           
         checkpoint=len(tempdata)
         
-    except Exception as e: print(e)
+    except Exception as e: print(e, '2')
     try:
     #==========================================   3   =====================================================    
         R=subprocess.run(['sar', '-B', '-f','/var/log/sa/sa' + date ], stdout=subprocess.PIPE)
@@ -132,7 +132,7 @@ def getdataset(date):
            
         checkpoint=len(tempdata)
         
-    except Exception as e: print(e)
+    except Exception as e: print(e, '3')
     try:    
     #============================================   4   ===================================================    
         R=subprocess.run(['sar', '-q', '-f','/var/log/sa/sa' + date ], stdout=subprocess.PIPE)
@@ -168,7 +168,7 @@ def getdataset(date):
         checkpoint=len(tempdata)
         
     
-    except Exception as e: print(e)
+    except Exception as e: print(e, '4')
     try:        
     #============================================   5   ===================================================    
         R=subprocess.run(['sar', '-r', '-f','/var/log/sa/sa' + date ], stdout=subprocess.PIPE)
@@ -205,7 +205,7 @@ def getdataset(date):
    
         
    
-    except Exception as e: print(e)
+    except Exception as e: print(e, '5')
     try:
     #============================================   6   ===================================================    
         R=subprocess.run(['sar', '-w', '-f','/var/log/sa/sa' + date ], stdout=subprocess.PIPE)
@@ -241,7 +241,7 @@ def getdataset(date):
         checkpoint=len(tempdata)
       
    
-    except Exception as e: print(e)
+    except Exception as e: print(e,'6')
     try: 
  #==========================================  -n DEV ==================================================    
         R=subprocess.run(['sar', '-n', 'DEV', '-f','/var/log/sa/sa' + date ], stdout=subprocess.PIPE)
@@ -295,7 +295,7 @@ def getdataset(date):
         #tempdata.pop(2)       
         checkpoint=len(tempdata)
 
-    except Exception as e: print(e)
+    except Exception as e: print(e,'7')
     try:        
     
  #==========================================  -d -p ==================================================    
@@ -351,7 +351,7 @@ def getdataset(date):
         checkpoint=len(tempdata)
                  
       
-    except Exception as e: print(e)
+    except Exception as e: print(e,'8')
     #intervals=[]
     
     
@@ -387,7 +387,7 @@ def getdataset(date):
     
         
         
-    except Exception as e: print(e)
+    except Exception as e: print(e, '9')
     
     
     return tempdata , intervals, labels
@@ -396,7 +396,8 @@ def plott():
     
     try:  #plotting
         
-        
+        # Initial call to print 0% progress
+        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         os.makedirs(r'./'+sardate+'/')
     
         plt.figure(dpi=200,frameon=True);
@@ -421,8 +422,13 @@ def plott():
             
             if len(plt._pylab_helpers.Gcf.get_all_fig_managers())>99:
                 plt.close(fig='all');
+                                
+            # Update Progress Bar
+            printProgressBar(datalist.index(i) + 1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
             
-    except Exception as e: print(e)
+    except Exception as e: print(e, '10')
+
+
 
 def getfiledate(date):
     
@@ -439,7 +445,26 @@ def getfiledate(date):
     
     return sardate
 
-
+def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
 
 #%%+++++++++++++++++++VARIABLES++++++++++++++++++
 
@@ -496,14 +521,18 @@ try:
     if len(args) != 0:
         
         if 'relog' in args and args['relog']!=None and args['relog'][-4:]=='.blg':
+            
+            print('\n \n -------------Converting Data:-------------')
+            
             os.system("relog " + str(args['relog']) + " -o \"%cd%\out.csv\" -f csv")
+            
             winflag = True;
             
         elif args['relog'][-4:]!='.blg':
             print('wrong input! \nplease enter full .blg filename.')
             
             
-except Exception as e: print(e)
+except Exception as e: print(e, '11')
 
 
 #%%-
@@ -512,27 +541,30 @@ except Exception as e: print(e)
 inputdate=''
 
 try:
-        
+       
+    #print(str(type(args['linuxlog'])))
     if len(args) != 0:
         
-        if 'linuxlog' in args and args['linuxlog']!=None and len(args['linuxlog'])==2:
-            inputdate=args['linuxlog'] #find the days and split the string
-            sardate=getfiledate(inputdate)
-            datalist, timeIntervals, labels = getdataset(inputdate)
-            plott()
-            
-
-            with open('./'+sardate+'/log.txt', "w") as output:
-                for i in labels:
-                    output.write(str(i).replace('(','')+'\n')
-            winflag = False        
+        if 'linuxlog' in args and str(type(args['linuxlog']))!="<class \'NoneType\'>" and args['linuxlog']!=None:
+            if len(args['linuxlog'])==2:
+                inputdate=args['linuxlog'] #find the days and split the string
+                sardate=getfiledate(inputdate)
+                datalist, timeIntervals, labels = getdataset(inputdate)
+                plott()
+                
+    
+                with open('./'+sardate+'/log.txt', "w") as output:
+                    for i in labels:
+                        output.write(str(i).replace('(','')+'\n')
+                winflag = False        
+                        
                     
-                    
-        elif len(args['linuxlog'])!=2:
-            print('wrong input! \nplease enter the day numer with two digits (e.g. 09)')
-            exit()
+        elif args['linuxlog']!=None:
+            if len(args['linuxlog'])!=2:
+                print('wrong input! \nplease enter the day numer with two digits (e.g. 09)')
+                exit()
             
-except Exception as e: print(e)
+except Exception as e: print(e,'12')
 
 
 #%%++++++++++++++++++LOADING DATA+++++++++++++++++
@@ -556,7 +588,7 @@ if winflag==True:
                 datalist.append(d)
                 d=[]
             
-    except Exception as e: print(e)        
+    except Exception as e: print(e,'13')        
             
             
     #%%++++++++++++++++++CONFIGURING THE DATASET AND ELEMENTS++++++++++++        
@@ -599,6 +631,10 @@ if winflag==True:
         #%%--------------------------clearing data----------------------------------
         
         #templist=copy.deepcopy(datalist)
+        
+        # Initial call to print 0% progress
+        print('\n \n -------------Configuring the Dataset: -------------  \n')
+        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         for i in datalist:
             for j in i:
                 
@@ -610,6 +646,8 @@ if winflag==True:
                 else:
                     datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
         
+        # update progress bar
+            printProgressBar(datalist.index(i)+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         
         
         #%%-----------------------converting time interavls-------------------------------
@@ -618,7 +656,7 @@ if winflag==True:
             timeIntervals[timeIntervals.index(i)]=datetime.strptime(i,"%m/%d/%Y %H:%M:%S.%f")
     
              
-    except Exception as e: print(e)      
+    except Exception as e: print(e,'14')      
      
      
     
@@ -630,19 +668,34 @@ if winflag==True:
         if timeIntervals[0].strftime('%d.%m.%Y')==timeIntervals[-1].strftime('%d.%m.%Y'):
     
     
-            directory=timeIntervals[0].strftime('%Y-%m-%d')        
+            directory=timeIntervals[0].strftime('%Y-%m-%d')  
+            #directory="\""+directory+"\""
+           # print(directory)
             #directory=timeIntervals[0].strftime('%Y-%m-%d')+' '+timeIntervals[-1].strftime('%Y-%m-%d')
-            os.system('mkdir '+directory)
+            os.mkdir(directory)
         else:
             directory=timeIntervals[0].strftime('%Y-%m-%d')+' '+timeIntervals[-1].strftime('%Y-%m-%d')
     #        directory=timeIntervals[0].strftime('%Y-%m-%d')        
-            os.system('mkdir '+directory)
+            os.mkdir(directory)
             
+
+    except Exception as e: print(e,'15')  
+    
+    
+    
+    try:
+
     #%%+++++++++++++++++++PLOTTING+++++++++++++++++++++++++  
-        #multi()    
+        #multi()  
+        #plott()
+        
+        # Initial call to print 0% progress
+        
+        print('\n \n -------------Creating Files: -------------  \n')
+        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         plt.figure(dpi=200,frameon=True)
-        for i in range(0,len(datalist)):
-             
+        for i in range(1,len(datalist)):
+            
             plt.plot(timeIntervals,datalist[i], 'bo',markersize=1.5) 
             plt.rcParams.update({'font.size': 7})
             plt.title(labels[i], fontsize=11)
@@ -660,6 +713,15 @@ if winflag==True:
             
             if len(plt._pylab_helpers.Gcf.get_all_fig_managers())>99:
                 plt.close(fig='all')
+                
+            # Update Progress Bar
+            printProgressBar(i + 1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+                
+                
+    except Exception as e: print(e,'16')  
+
+
+    try:                
             
         #%%----------saving the csv file if wanted--------------------
         
@@ -687,7 +749,7 @@ if winflag==True:
             
         
         
-    except Exception as e: print(e)  
+    except Exception as e: print(e,'17')  
     
     
     # def endlog():
