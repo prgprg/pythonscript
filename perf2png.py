@@ -410,7 +410,7 @@ def plott():
             labels[i]=labels[i].replace('\'', '');
                     
             myFmt = mdates.DateFormatter('%H:%M')
-            plt.gca().xaxis.set_major_formatter(myFmt);
+            plt.gca().xaxis.setmajor_formatter(myFmt);
             
             plt.xlabel('Time HH:MM', fontsize=8);
             plt.grid(True);
@@ -724,15 +724,17 @@ if winflag==True:
     try:                
             
         #%%----------saving the csv file if wanted--------------------
-        
+    
         if len(args) != 0:
             
             if 'savecsv' in args and args['savecsv']!=None and args['savecsv'][-4:]=='.csv':
                 os.system('copy out.csv \"%cd%\\'+directory+'\"')
                 os.system('ren \"%cd%\\'+directory+'\\out.csv\" '+ str(args['savecsv']))
                 os.system('del out.csv')
-            elif args['savecsv'][-4:]!='.csv':
+            elif args['savecsv']!=None and args['savecsv'][-4:]!='.csv':
                 print('wrong input! \nplease enter full .csv filename with extension.')
+            elif args['savecsv']==None:
+                os.system('del out.csv')
             
         #%%----------saving the log.txt file if wanted--------------------
         
@@ -744,7 +746,7 @@ if winflag==True:
                     for i in txtlog:
                         output.write(str(i)+'\n')
                     
-            elif args['log'][-4:]!='.txt':
+            elif args['log']!=None and args['log'][-4:]!='.txt':
                 print('wrong input! \nplease enter full .txt filename with extension.')
             
         
