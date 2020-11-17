@@ -20,6 +20,29 @@ import subprocess
 
 
 #%%-------------Functions-----------------
+def cleardata(datalist):
+        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+        cono = 0
+        for i in datalist:
+            cono = datalist.index(i)
+            #print(cono)
+            for j in i:
+            
+                if j.strip() == "": #or j.strip() == '0':
+                    #datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1]=float(datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1])
+                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float("nan")
+                    #datalist[datalist.index(i)].pop(i.index(j))
+                    #i.pop(i.index(j))
+                else:
+                    #print(len(datalist),len(i))
+                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
+        
+        # update progress bar
+            printProgressBar(cono+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+        
+    
+        return datalist
+    
        
 def getdataset(date):
     
@@ -634,20 +657,24 @@ if winflag==True:
         
         # Initial call to print 0% progress
         print('\n \n -------------Configuring the Dataset: -------------  \n')
-        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
-        for i in datalist:
-            for j in i:
-                
-                if j.strip() == '': #or j.strip() == '0':
-                    #datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1]=float(datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1])
-                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float("nan")
-                    #datalist[datalist.index(i)].pop(i.index(j))
-                    #i.pop(i.index(j))
-                else:
-                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
+        # printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+        # cono = 0
+        # for i in datalist:
+        #     cono = datalist.index(i)
+        #     #print(cono)
+        #     for j in i:
+        datalist = cleardata(datalist)    
+        #         if j.strip() == "": #or j.strip() == '0':
+        #             #datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1]=float(datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1])
+        #             datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float("nan")
+        #             #datalist[datalist.index(i)].pop(i.index(j))
+        #             #i.pop(i.index(j))
+        #         else:
+        #             #print(len(datalist),len(i))
+        #             datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
         
-        # update progress bar
-            printProgressBar(datalist.index(i)+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+        # # update progress bar
+        #     printProgressBar(cono+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         
         
         #%%-----------------------converting time interavls-------------------------------
