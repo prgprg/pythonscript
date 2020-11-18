@@ -448,7 +448,7 @@ def getdataset(date):
     
     return tempdata , intervals, labels
 
-def plott():
+def plott(datalist,timeIntervals,labels,sardate):
     
     try:  #plotting
         
@@ -714,7 +714,7 @@ try:
                 inputdate=args['linuxlog'] #find the days and split the string
                 sardate=getfiledate(inputdate)
                 datalist, timeIntervals, labels = getdataset(inputdate)
-                plott()
+                plott(datalist, timeIntervals, labels, sardate)
                 
     
                 with open('./'+sardate+'/log.txt', "w") as output:
