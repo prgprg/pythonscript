@@ -1,50 +1,83 @@
-
 import os
 import argparse
-import time
 import matplotlib.pyplot as plt
 import csv
-#import copy
 from datetime import datetime
-
 import matplotlib.dates as mdates
 
-ss=time.time()
-
-
-
 #-------linuximport:
-
 import subprocess
-
 
 
 #%%-------------Functions-----------------
 def cleardata(datalist):
-        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
-        cono = 0
-        for i in datalist:
-            cono = datalist.index(i)
-            #print(cono)
-            for j in i:
+    
+      #%%------------------filtering the labels and removing unnececery texts------------------------------
+    try: 
+        timeIntervals=[]
+        labels=[]
+        txtlog=[]
+        for i in range(0,len(datalist)):
             
-                if j.strip() == "": #or j.strip() == '0':
+            slashindex=[pos for pos, char in enumerate(datalist[i][0]) if char == '\\']
+            if len(slashindex)>2:
+                txtlog.append(datalist[i][0])
+                datalist[i][0] = datalist[i][0][slashindex[2]+1:]
+         
+        
+        for i in range(0,len(datalist)):
+            
+            #if ':' in datalist[i][0] or '?' in datalist[i][0] or '\"' in datalist[i][0] or '|' in datalist[i][0] or '*' in datalist[i][0] or ':' in datalist[i][0] or ':' in datalist[i][0] or ':' in datalist[i][0]:
+            
+            #-----------------removing undefined chars--------------------------
+            
+            
+            datalist[i][0]= datalist[i][0].replace(':','')
+            datalist[i][0]= datalist[i][0].replace('?','')
+            datalist[i][0]= datalist[i][0].replace('*','')
+            datalist[i][0]= datalist[i][0].replace('/',' per ')
+            datalist[i][0]= datalist[i][0].replace('\"','')
+            datalist[i][0]= datalist[i][0].replace('>','')
+            datalist[i][0]= datalist[i][0].replace('<','')
+            datalist[i][0]= datalist[i][0].replace(':','')
+             
+            #------------------------------------------------------------------    
+            labels.append(datalist[i][0].replace('\\','_'))
+            datalist[i].pop(0)
+            
+        timeIntervals=datalist[0]
+        datalist.pop(0)
+        labels.pop(0)
+        
+        
+        print('\n \n -------------Configuring the Dataset: -------------  \n')
+        printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+       
+        for i in range(len(datalist)):
+            
+         
+            for j in range(len(datalist[i])):
+            
+                if datalist[i][j].strip() == "": #or j.strip() == '0':
                     #datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1]=float(datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1])
-                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float("nan")
+                    datalist[i][j]=float("nan")
                     #datalist[datalist.index(i)].pop(i.index(j))
                     #i.pop(i.index(j))
                 else:
                     #print(len(datalist),len(i))
-                    datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
-        
+                    datalist[i][j]=float(datalist[i][j])
+          
         # update progress bar
-            printProgressBar(cono+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
-        
+            printProgressBar(i+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+         
+        for i in timeIntervals:
+                timeIntervals[timeIntervals.index(i)]=datetime.strptime(i,"%m/%d/%Y %H:%M:%S.%f")
+    except Exception as e: print(e,'14')         
+
+    return datalist , timeIntervals, labels, txtlog
     
-        return datalist
-    
-       
 def getdataset(date):
+    
     
     
     try:
@@ -451,8 +484,6 @@ def plott():
             
     except Exception as e: print(e, '10')
 
-
-
 def getfiledate(date):
     
     R=subprocess.run(['sar', '-u', '-f','/var/log/sa/sa'+ date ], stdout=subprocess.PIPE)  #read from terminal line
@@ -489,114 +520,10 @@ def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, l
     if iteration == total: 
         print()
 
-#%%+++++++++++++++++++VARIABLES++++++++++++++++++
-
-
-#DATA
-
-counter_1 = 0
-
-winflag = True
-datalist = []
-labels = []
-txtlog=[]
-timeIntervals=[]
-
-#SYSTEM FILE
-directory=''
-file_name=''
-
-#%%+++++++++++++++++++++++OPTIONs AND ARGUMENTS++++++++++++++++++++++
-
-# Construct the argument parser
-ap = argparse.ArgumentParser()
-
-# Add the arguments to the parser
-
-#relog
-ap.add_argument("-r", "--relog", required=False,
-   help="[file name] convert .blg file to .csv")
-
-
-ap.add_argument("-l", "--log", required=False,
-   help="[file name] creates a log file with specific name if given")
-
-
-
-ap.add_argument("-s", "--savecsv", required=False,
-   help="[.csv output filename] keeps the .csv file")
-
-
-#linux
-ap.add_argument("-u", "--linuxlog", required=False,
-    help="[DD] (day of month) generates the png file from sar file for the specified date.\nAlso creates a log.txt file with names of plotted arguments")
-args = vars(ap.parse_args())
-
-
-
-
-
-#%%+++++++++++++++++++++++++ relog COMMANDS++++++++++++++++++++++++++++++
-try:
-        
-    #print(args['relog']) 
-    #
-    if len(args) != 0:
-        
-        if 'relog' in args and args['relog']!=None and args['relog'][-4:]=='.blg':
-            
-            print('\n \n -------------Converting Data:-------------')
-            
-            os.system("relog " + str(args['relog']) + " -o \"%cd%\out.csv\" -f csv")
-            
-            winflag = True;
-            
-        elif args['relog'][-4:]!='.blg':
-            print('wrong input! \nplease enter full .blg filename.')
-            
-            
-except Exception as e: print(e, '11')
-
-
-#%%-
-#------------linux:+++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-inputdate=''
-
-try:
-       
-    #print(str(type(args['linuxlog'])))
-    if len(args) != 0:
-        
-        if 'linuxlog' in args and str(type(args['linuxlog']))!="<class \'NoneType\'>" and args['linuxlog']!=None:
-            if len(args['linuxlog'])==2:
-                inputdate=args['linuxlog'] #find the days and split the string
-                sardate=getfiledate(inputdate)
-                datalist, timeIntervals, labels = getdataset(inputdate)
-                plott()
-                
-    
-                with open('./'+sardate+'/log.txt', "w") as output:
-                    for i in labels:
-                        output.write(str(i).replace('(','')+'\n')
-                winflag = False        
-                        
-                    
-        elif args['linuxlog']!=None:
-            if len(args['linuxlog'])!=2:
-                print('wrong input! \nplease enter the day numer with two digits (e.g. 09)')
-                exit()
-            
-except Exception as e: print(e,'12')
-
-
-#%%++++++++++++++++++LOADING DATA+++++++++++++++++
-
-if winflag==True:
-
-    
+def winget():
     try:
         
+        datalist=[]
         with open("out.csv", 'r') as csvfile:
             templist = []
             d = []
@@ -613,84 +540,11 @@ if winflag==True:
             
     except Exception as e: print(e,'13')        
             
-            
-    #%%++++++++++++++++++CONFIGURING THE DATASET AND ELEMENTS++++++++++++        
-            
-    try:
-        #%%------------------filtering the labels and removing unnececery texts------------------------------
-        
-        for i in range(0,len(datalist)):
-            
-            slashindex=[pos for pos, char in enumerate(datalist[i][0]) if char == '\\']
-            if len(slashindex)>2:
-                txtlog.append(datalist[i][0])
-                datalist[i][0] = datalist[i][0][slashindex[2]+1:]
-         
-        
-        for i in range(0,len(datalist)):
-            
-            #if ':' in datalist[i][0] or '?' in datalist[i][0] or '\"' in datalist[i][0] or '|' in datalist[i][0] or '*' in datalist[i][0] or ':' in datalist[i][0] or ':' in datalist[i][0] or ':' in datalist[i][0]:
-            
-            #-----------------removing undefined chars--------------------------
-            
-            
-            datalist[i][0]= datalist[i][0].replace(':','')
-            datalist[i][0]= datalist[i][0].replace('?','')
-            datalist[i][0]= datalist[i][0].replace('*','')
-            datalist[i][0]= datalist[i][0].replace('/','')
-            datalist[i][0]= datalist[i][0].replace('\"','')
-            datalist[i][0]= datalist[i][0].replace('>','')
-            datalist[i][0]= datalist[i][0].replace('<','')
-            datalist[i][0]= datalist[i][0].replace(':','')
-             
-            #------------------------------------------------------------------    
-            labels.append(datalist[i][0].replace('\\','_'))
-            datalist[i].pop(0)
-            
-        timeIntervals=datalist[0]
-        datalist.pop(0)
-        labels.pop(0)
-        
-        #%%--------------------------clearing data----------------------------------
-        
-        #templist=copy.deepcopy(datalist)
-        
-        # Initial call to print 0% progress
-        print('\n \n -------------Configuring the Dataset: -------------  \n')
-        # printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
-        # cono = 0
-        # for i in datalist:
-        #     cono = datalist.index(i)
-        #     #print(cono)
-        #     for j in i:
-        datalist = cleardata(datalist)    
-        #         if j.strip() == "": #or j.strip() == '0':
-        #             #datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1]=float(datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)+1])
-        #             datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float("nan")
-        #             #datalist[datalist.index(i)].pop(i.index(j))
-        #             #i.pop(i.index(j))
-        #         else:
-        #             #print(len(datalist),len(i))
-        #             datalist[datalist.index(i)][datalist[datalist.index(i)].index(j)]=float(j)
-        
-        # # update progress bar
-        #     printProgressBar(cono+1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
-        
-        
-        #%%-----------------------converting time interavls-------------------------------
-        
-        for i in timeIntervals:
-            timeIntervals[timeIntervals.index(i)]=datetime.strptime(i,"%m/%d/%Y %H:%M:%S.%f")
-    
-             
-    except Exception as e: print(e,'14')      
-     
-     
-    
-      
-     
+    return datalist       
+
+def createdir(timeIntervals):
     try: 
-        
+        directory=''
         #%%----------creating directory-----------------
         if timeIntervals[0].strftime('%d.%m.%Y')==timeIntervals[-1].strftime('%d.%m.%Y'):
     
@@ -708,8 +562,10 @@ if winflag==True:
 
     except Exception as e: print(e,'15')  
     
+    return directory
     
-    
+def winplot(datalist , timeIntervals , labels , directory):
+
     try:
 
     #%%+++++++++++++++++++PLOTTING+++++++++++++++++++++++++  
@@ -721,7 +577,7 @@ if winflag==True:
         print('\n \n -------------Creating Files: -------------  \n')
         printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         plt.figure(dpi=200,frameon=True)
-        for i in range(1,len(datalist)):
+        for i in range(len(datalist)):
             
             plt.plot(timeIntervals,datalist[i], 'bo',markersize=1.5) 
             plt.rcParams.update({'font.size': 7})
@@ -746,8 +602,8 @@ if winflag==True:
                 
                 
     except Exception as e: print(e,'16')  
-
-
+    
+def saveextrafiles(directory, txtlog):
     try:                
             
         #%%----------saving the csv file if wanted--------------------
@@ -781,11 +637,118 @@ if winflag==True:
     except Exception as e: print(e,'17')  
     
     
-    # def endlog():
-    #     print(time.time()-ss)
     
-    # atexit.register(endlog)
+    
+    
+#%%+++++++++++++++++++++++OPTIONs AND ARGUMENTS++++++++++++++++++++++
+# Construct the argument parser
+ap = argparse.ArgumentParser()
+
+# Add the arguments to the parser
+
+#relog
+ap.add_argument("-r", "--relog", required=False,
+   help="[file name] convert .blg file to .csv")
+
+
+ap.add_argument("-l", "--log", required=False,
+   help="[file name] creates a log file with specific name if given")
+
+
+
+ap.add_argument("-s", "--savecsv", required=False,
+   help="[.csv output filename] keeps the .csv file")
+
+
+#linux
+ap.add_argument("-u", "--linuxlog", required=False,
+    help="[DD] (day of month) generates the png file from sar file for the specified date.\nAlso creates a log.txt file with names of plotted arguments")
+args = vars(ap.parse_args())
+
+#%%+++++++++++++++++++VARIABLES++++++++++++++++++
+
+
+#DATA
+
+winflag = True
+
+
+#SYSTEM FILE
+
+
+
+#%%+++++++++++++++++++++++++ relog COMMANDS++++++++++++++++++++++++++++++
+try:
+        
+    #print(args['relog']) 
+    #
+    if len(args) != 0:
+        
+        if 'relog' in args and args['relog']!=None and args['relog'][-4:]=='.blg':
+            
+            print('\n \n -------------Converting Data:-------------')
+            
+            os.system("relog " + str(args['relog']) + " -o \"%cd%\out.csv\" -f csv")
+            
+            winflag = True;
+            
+        elif args['relog'][-4:]!='.blg':
+            print('wrong input! \nplease enter full .blg filename.')
+            
+            
+except Exception as e: print(e, '11')
+
+
+
+#%%-----------------------linux:----------------------------------------------
+
+inputdate=''
+
+try:
+       
+    #print(str(type(args['linuxlog'])))
+    if len(args) != 0:
+        
+        if 'linuxlog' in args and str(type(args['linuxlog']))!="<class \'NoneType\'>" and args['linuxlog']!=None:
+            if len(args['linuxlog'])==2:
+                inputdate=args['linuxlog'] #find the days and split the string
+                sardate=getfiledate(inputdate)
+                datalist, timeIntervals, labels = getdataset(inputdate)
+                plott()
+                
+    
+                with open('./'+sardate+'/log.txt', "w") as output:
+                    for i in labels:
+                        output.write(str(i).replace('(','')+'\n')
+                winflag = False        
+                        
+                    
+        elif args['linuxlog']!=None:
+            if len(args['linuxlog'])!=2:
+                print('wrong input! \nplease enter the day numer with two digits (e.g. 09)')
+                exit()
+            
+except Exception as e: print(e,'12')
+
+#%%++++++++++++++++++Windows+++++++++++++++++
+
+if winflag==True:
+
+    datalist = winget()
+    
+    datalist , timeIntervals , labels, txtlog = cleardata(datalist)
+    
+    directory = createdir(timeIntervals)
+    
+    winplot(datalist,timeIntervals,labels,directory)
+    
+    saveextrafiles(directory, txtlog)
     
 else:
-    exit()    
+    print("Nothing to do here!")
+    exit()
+    
+    
+    
+    
     
