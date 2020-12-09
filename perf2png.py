@@ -453,6 +453,7 @@ def plott(datalist,timeIntervals,labels,sardate):
     try:  #plotting
         
         # Initial call to print 0% progress
+       
         printProgressBar(0, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
         os.makedirs(r'./'+sardate+'/')
     
@@ -466,7 +467,7 @@ def plott(datalist,timeIntervals,labels,sardate):
             labels[i]=labels[i].replace('\'', '');
                     
             myFmt = mdates.DateFormatter('%H:%M')
-            plt.gca().xaxis.setmajor_formatter(myFmt);
+            plt.gca().xaxis.set_major_formatter(myFmt);
             
             plt.xlabel('Time HH:MM', fontsize=8);
             plt.grid(True);
@@ -480,7 +481,7 @@ def plott(datalist,timeIntervals,labels,sardate):
                 plt.close(fig='all');
                                 
             # Update Progress Bar
-            printProgressBar(datalist.index(i) + 1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
+            printProgressBar(i + 1, len(datalist), prefix = 'Progress:', suffix = 'Complete', length = 50)
             
     except Exception as e: print(e, '10')
 
@@ -637,6 +638,165 @@ def saveextrafiles(directory, txtlog):
     except Exception as e: print(e,'17')  
     
     
+def nodev(data,filename):
+   
+    
+    date = filename
+    
+
+    data.pop(0)
+    data.pop(0)
+    labels=data.pop(0)
+    labels.pop(0)
+    labels.pop(0)
+    
+    avg=[]
+    for i in range(len(data)):    
+        if data[i][0]=='Average:':
+            avg.append(data[i])
+            
+            
+            
+    for i in avg:
+        data.pop(data.index(i))
+    
+    
+    if labels[0].strip()=='CPU':
+        
+        for i in range(len(data)):
+            data[i].pop(2)
+        labels.pop(0)
+    
+    plotlabels=[]
+    
+    for j in range(len(labels)):
+        lstr = labels[j]
+        lstr=lstr.replace('/','-')
+        lstr=lstr.replace('%','percent ')
+        lstr=lstr.replace('\\','-')
+        lstr=lstr.replace('_','-')
+        lstr=lstr.replace('(','')
+        lstr=lstr.replace(')','')
+        
+        
+        plotlabels.append(lstr.strip())
+
+    timerange=[]
+    for i in range(len(data)):
+        tstr=data[i][0]+' '+data[i][1]
+        tstr=datetime.strptime(tstr,'%I:%M:%S %p')
+        
+        if tstr not in timerange:
+              timerange.append(tstr)
+        
+    datalist=[]
+    
+  
+    
+    
+    rawdata=[]
+    for j in range(len(data)):                
+        rawdata.append(data[j])      
+    
+
+        
+    for j in range(2,len(data[0])):
+        
+        temp=[]
+        
+        for z in range(len(rawdata)):
+            temp.append(float(rawdata[z][j].strip()))
+        datalist.append(temp)
+        
+    
+    # date=date.replace('/','-')
+    
+    date=date+' Plots'
+    
+    return datalist ,plotlabels,date, timerange
+
+def dev(data):       
+    date = data.pop(0)
+    
+    date = date[3].strip()
+    
+    data.pop(0)
+    
+    labels=data.pop(0)
+    
+    avg=[]
+    for i in range(len(data)):    
+        if data[i][0]=='Average:':
+            avg.append(data[i])
+            
+            
+            
+    for i in avg:
+        data.pop(data.index(i))
+    
+    
+    devs=[]
+    
+    for i in range(len(data)):
+        devs.append(data[i][2])
+    devs=list(set(devs))
+
+    labels.pop(0)
+    labels.pop(0)
+    labels.pop(0)
+    
+    plotlabels=[]
+    for i in range(len(devs)):
+        for j in range(len(labels)):
+            lstr = devs[i].strip()+' '+labels[j].strip()
+            lstr=lstr.replace('/','-')
+            lstr=lstr.replace('%','percent ')
+            lstr=lstr.replace('\\','-')
+            lstr=lstr.replace('_','-')
+            lstr=lstr.replace('(','')
+            lstr=lstr.replace(')','')
+            
+            
+            plotlabels.append(lstr.strip())
+    
+    timerange=[]
+    for i in range(len(data)):
+        tstr=data[i][0]+' '+data[i][1]
+        tstr=datetime.strptime(tstr,'%I:%M:%S %p')
+        
+        if tstr not in timerange:
+             timerange.append(tstr)
+        
+    datalist=[]
+    
+    rawdata=[]
+    
+    for i in range(len(devs)):
+        temp=[]
+        for j in range(len(data)):                
+            if d[j][2]==devs[i]:                    
+                temp.append(data[j])                    
+        rawdata.append(temp)
+        
+    for i in range(len(rawdata)):
+        
+        temp=[]
+         
+        for j in range(3,len(data[0])):
+            
+            temp=[]
+            
+            for z in range(len(rawdata[i])):
+                temp.append(float(rawdata[i][z][j]))
+            datalist.append(temp)
+            
+            
+    date=date.replace('/','-')
+    
+    
+    return datalist, plotlabels, date, timerange
+
+    
     
     
     
@@ -658,6 +818,9 @@ ap.add_argument("-l", "--log", required=False,
 
 ap.add_argument("-s", "--savecsv", required=False,
    help="[.csv output filename] keeps the .csv file")
+
+ap.add_argument("-f", "--sysstatfile", required=False,
+    help="[file name] Enter the sysstat output filename to create charts in windows")
 
 
 #linux
@@ -697,6 +860,51 @@ try:
             
             
 except Exception as e: print(e, '11')
+
+
+
+
+#%%+++++++++++++++++++++++++ sar file in windows COMMANDS++++++++++++++++++++++++++++++
+try:
+        
+    #print(args['relog']) 
+    #
+    if len(args) != 0:
+        
+        if 'sysstatfile' in args and args['sysstatfile']!=None:
+            
+            print('\n \n -------------Creating Plots:-------------')
+            winflag=False
+            d=[]
+
+            with open(args['sysstatfile'], 'r') as sarfile:
+                for i in sarfile:
+                    d.append(list(filter(None,str(i).split(' '))))
+             
+            
+            
+            try:
+                
+                
+                float(d[int(len(d)/2)][2])
+                devs,labels,date,t=nodev(d,args['sysstatfile'])
+                plott(devs,t,labels,date)
+                
+            except:
+                
+               
+                devs,labels,date,t=dev(d)
+                plott(devs,t,labels,date)
+                    
+
+
+            
+        elif args['relog'][-4:]!='.blg':
+            print('wrong input! \nplease enter full .blg filename.')
+            
+            
+except Exception as e: print(e, '11')
+
 
 
 
